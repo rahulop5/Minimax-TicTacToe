@@ -1,14 +1,6 @@
-const cells = document.querySelectorAll('[data-cell]');
-const statusMessage = document.querySelector('.status-message');
-const restartButton = document.querySelector('.restart-button');
-
-
-let currentPlayer = 'X';
-let gameActive = true;
-let gameState = ['', '', '', '', '', '', '', '', ''];
-let actions=[1,1,1,1,1,1,1,1,1];
-let result=['', '', '', '', '', '', '', '', ''];
-
+let gamestate=["", "", "", "", "", "", "", "", ""];
+let gameactive=true;
+let currplayer="X";
 const winningCombinations = [
     [0, 1, 2],
     [3, 4, 5],
@@ -20,120 +12,51 @@ const winningCombinations = [
     [2, 4, 6]
 ];
 
-function handleCellClick(event) {
-    const clickedCell = event.target;
-    const clickedCellIndex = Array.from(cells).indexOf(clickedCell);
+const cells=document.querySelectorAll(".cell");
+const statusMessage = document.querySelector('.status-message');
+const restartButton = document.querySelector('.restart-button');
+const cellsarray=Array.from(cells);
 
-    if (gameState[clickedCellIndex] !== '' || !gameActive) {
-        return;
-    }
+statusMessage.textContent=`Its ${currplayer}'s turn`;
 
-    gameState[clickedCellIndex] = currentPlayer;
-    clickedCell.textContent = currentPlayer;
-    
-    console.log(checkForWinner());
-}
-
-function checkForWinner() {
-    let roundWon = false;
-
-    for (let i = 0; i < winningCombinations.length; i++) {
-        const [a, b, c] = winningCombinations[i];
-        if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') {
-            continue;
+cellsarray.map((cell)=>{
+    cell.addEventListener("click", (event)=>{
+        if(gameactive){
+            const cellclicked=event.target;
+            const cellclickedindex=cellsarray.indexOf(cellclicked);
+            if(gamestate[cellclickedindex]===""){
+                cellclicked.innerText=currplayer;
+                gamestate[cellclickedindex]=currplayer;
+                if(!isgameover()){
+                    currplayer=(currplayer==="X")?"O":"X";
+                    statusMessage.textContent=`Its ${currplayer}'s turn`;
+                }
+            }
         }
-        if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
-            roundWon = true;
-            break;
-        }
-    }
-
-    if (roundWon) {
-        statusMessage.textContent = `Player ${currentPlayer} wins!`;
-        gameActive = false;
-        if(currentPlayer==="X"){
-            return 1;
-        }
-        else{
-            return -1;
-        }
-    }
-
-    const roundDraw = !gameState.includes('');
-    if (roundDraw) {
-        statusMessage.textContent = `It's a draw!`;
-        gameActive = false;
-        return 0;
-    }
-
-    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-    statusMessage.textContent = `It's ${currentPlayer}'s turn`;
-    return null;
-}
-
-function restartGame() {
-    currentPlayer = 'X';
-    gameActive = true;
-    gameState = ['', '', '', '', '', '', '', '', ''];
-    statusMessage.textContent = `It's ${currentPlayer}'s turn`;
-    cells.forEach(cell => {
-        cell.textContent = '';
-    });
-}
-
-cells.forEach(cell => {
-    cell.addEventListener('click', handleCellClick);
+    })
 });
 
-restartButton.addEventListener('click', restartGame);
 
-statusMessage.textContent = `It's ${currentPlayer}'s turn`;
+restartButton.addEventListener("click", ()=>{
+    gameactive=false;
+    gamestate=["", "", "", "", "", "", "", "", ""];
+    currplayer="X";
+    cellsarray.map((cell)=>{
+        cell.textContent="";
+    });
+    statusMessage.textContent=`Its ${currplayer}'s turn`
+    gameactive=true;
+});
 
-
-
-function utility(){
-    return checkForWinner();
+function isgameover() {
+    return winningCombinations.some((combi) => {
+        if (gamestate[combi[0]] !== "" && gamestate[combi[0]] === gamestate[combi[1]] && gamestate[combi[1]] === gamestate[combi[2]]) {
+            statusMessage.textContent = `${currplayer} won!`;
+            gameactive = false;
+            return true;
+        }
+        return false;
+    });
 }
-
-function minValue(){
-    if(terminalState()){
-        return utility();
-    }
-    else{
-        var v=-100000;
-        // for each action
-        var emptyspaces=[];
-        gameState.map((box, index)=>{
-            if(box===""){
-                emptyspaces.push(index);
-            }
-        });
-    }
-}
-
-function maxValue(){
-    if(terminalState()){
-        return utility();
-    }
-    else{
-        var v=100000;
-        // for each action
-        var emptyspaces=[];
-        gameState.map((box, index)=>{
-            if(box===""){
-                emptyspaces.push(index);
-            }
-        });
-
-    }
-}
-
-function terminalState(){
-    if(checkForWinner()===0||checkForWinner()===1||checkForWinner===-1){
-        return true;
-    }
-    return false;
-}
-
 
 
